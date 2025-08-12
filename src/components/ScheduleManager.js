@@ -64,14 +64,15 @@ function ScheduleManager({ onReschedule }) {
         disabled={isRescheduling}
         style={{ width: '100%', marginBottom: '1rem' }}
       >
-        {isRescheduling ? '⏳ Rescheduling...' : '🔄 Auto-Reschedule'}
+        {isRescheduling ? '⏳ Rescheduling...' : '🔄 Priority Auto-Reschedule'}
       </button>
 
       <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
-        <p>• <strong>Critical patients</strong> get earliest slots</p>
-        <p>• <strong>High priority</strong> patients scheduled next</p>
-        <p>• <strong>Medium/Low priority</strong> fill remaining slots</p>
-        <p>• Automatically updates database</p>
+        <p>• <strong>Reschedules ALL patients</strong> by priority</p>
+        <p>• <strong>Critical patients</strong> get 9:00 AM, 9:30 AM...</p>
+        <p>• <strong>High priority</strong> get next earliest slots</p>
+        <p>• <strong>Medium/Low priority</strong> get remaining times</p>
+        <p>• Automatically updates entire schedule</p>
       </div>
     </div>
   );

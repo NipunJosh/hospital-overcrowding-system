@@ -105,7 +105,7 @@ def reschedule_patients():
         # Priority order: Critical > High > Medium > Low
         priority_order = {'critical': 1, 'high': 2, 'medium': 3, 'low': 4}
         
-        # Sort patients by priority (critical first)
+        # Sort ALL patients by priority (critical gets earliest times)
         sorted_patients = sorted(patients, key=lambda p: priority_order.get(p.get('priority', 'low').lower(), 4))
         
         # Generate new time slots starting from 9:00 AM
@@ -140,7 +140,7 @@ def reschedule_patients():
                 'priority': patient.get('priority', 'medium'),
                 'old_time': old_time,
                 'new_time': new_time_12h,
-                'reason': f"Rescheduled by priority - {patient.get('priority', 'medium')} priority patient"
+                'reason': f"Priority-based scheduling - {patient.get('priority', 'medium')} priority"
             })
             
             # Increment time by 30 minutes
@@ -153,7 +153,7 @@ def reschedule_patients():
             'success': True,
             'rescheduled_count': len(rescheduled),
             'rescheduled_patients': rescheduled,
-            'message': f'Successfully rescheduled {len(rescheduled)} patients by priority'
+            'message': f'Successfully rescheduled all {len(rescheduled)} patients by priority order'
         })
         
     except Exception as e:
