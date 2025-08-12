@@ -2,28 +2,49 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime, timedelta
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class HospitalDB:
     def __init__(self):
-        # MongoDB Atlas connection with SSL fix
-        uri = "mongodb+srv://fishhaven737:7Jfcn9qnvQ2FDS9g@hospital-overcrowding-s.lppiehn.mongodb.net/?retryWrites=true&w=majority&appName=hospital-overcrowding-system"
-        self.client = MongoClient(uri, server_api=ServerApi('1'), tlsAllowInvalidCertificates=True)
+        # MongoDB Atlas connection with comprehensive SSL fix
+        uri = os.getenv('MONGODB_URI', "mongodb+srv://fishhaven737:7Jfcn9qnvQ2FDS9g@hospital-overcrowding-s.lppiehn.mongodb.net/?retryWrites=true&w=majority&appName=hospital-overcrowding-system")
+        
+        try:
+            self.client = MongoClient(
+                uri, 
+                server_api=ServerApi('1'),
+                tlsAllowInvalidCertificates=True,
+                tlsInsecure=True,
+                connectTimeoutMS=10000,
+                serverSelectionTimeoutMS=10000,
+                maxPoolSize=1
+            )
+        except Exception as e:
+            print(f"MongoDB connection setup failed: {e}")
+            self.client = None
         self.db = self.client.hospital_system
         
-        # Test connection
-        try:
-            self.client.admin.command('ping')
-            print("Connected to MongoDB Atlas!")
-        except Exception as e:
-            print(f"MongoDB connection failed: {e}")
-        
-        # Collections
-        self.patients = self.db.patients
-        self.predictions = self.db.predictions
-        self.alerts = self.db.alerts
-        self.schedules = self.db.schedules
+        # Test connection and initialize collections
+        if self.client:
+            try:
+                self.client.admin.command('ping')
+                print("Connected to MongoDB Atlas!")
+                self.db = self.client.hospital_system
+                self.patients = self.db.patients
+                self.predictions = self.db.predictions
+                self.alerts = self.db.alerts
+                self.schedules = self.db.schedules
+            except Exception as e:
+                print(f"MongoDB connection failed: {e}")
+                self.client = None
+        else:
+            print("MongoDB client initialization failed")
     
     def add_patient(self, patient_data):
+        if not self.client:
+            raise Exception("MongoDB not connected")
         return self.patients.insert_one(patient_data)
     
     def get_patients(self, date=None):
