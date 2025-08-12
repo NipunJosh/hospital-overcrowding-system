@@ -104,7 +104,7 @@ export const HospitalProvider = ({ children }) => {
     }
   };
 
-  const getHourlyPredictions = () => {
+  const getHourlyPredictions = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const todayPatients = patients.filter(p => p.date === today);
     
@@ -131,7 +131,7 @@ export const HospitalProvider = ({ children }) => {
     });
 
     return Object.values(hourlyData);
-  };
+  }, [patients, CAPACITY_LIMIT]);
 
   const [showRescheduleOptions, setShowRescheduleOptions] = useState(null);
 
@@ -174,7 +174,7 @@ export const HospitalProvider = ({ children }) => {
         });
       }
     }
-  }, [patients, CAPACITY_LIMIT, setAlerts, setShowRescheduleOptions]);
+  }, [patients, CAPACITY_LIMIT, setAlerts, setShowRescheduleOptions, getHourlyPredictions]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
