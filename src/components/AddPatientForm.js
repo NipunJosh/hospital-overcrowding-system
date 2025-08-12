@@ -156,6 +156,7 @@ function AddPatientForm({ onAddPatient, onClose }) {
                 type="time"
                 value={formData.time}
                 onChange={(e) => setFormData({...formData, time: e.target.value})}
+                min={new Date().toTimeString().slice(0, 5)}
                 style={{
                   width: '100%',
                   padding: '0.75rem',

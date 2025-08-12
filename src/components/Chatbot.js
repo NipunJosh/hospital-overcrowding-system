@@ -31,12 +31,31 @@ function Chatbot() {
     const userMessage = { text: inputValue, isBot: false };
     setMessages(prev => [...prev, userMessage]);
 
-    // Simple keyword matching for responses
-    const keyword = Object.keys(responses).find(key => 
-      inputValue.toLowerCase().includes(key)
-    );
+    // Check for patient management commands
+    const input = inputValue.toLowerCase();
+    let botResponse;
     
-    const botResponse = responses[keyword] || responses['default'];
+    if (input.includes('add patient') || input.includes('create patient')) {
+      botResponse = "I'll help you add a patient! Please provide:\n• Patient name\n• Department (General, Cardiology, etc.)\n• Priority (Critical, High, Medium, Low)\n• Time (HH:MM format)\n\nExample: 'Add John Doe, General, High, 10:30'";
+    } else if (input.includes('delete patient') || input.includes('remove patient')) {
+      botResponse = "I can help delete patients! Please provide the patient name or ID.\n\nExample: 'Delete John Doe' or 'Remove patient P001'";
+    } else if (input.match(/add .+, .+, .+, .+/)) {
+      // Parse add patient command
+      const parts = input.replace('add ', '').split(', ');
+      if (parts.length >= 4) {
+        const [name, dept, priority, time] = parts;
+        botResponse = `Adding patient:\n• Name: ${name}\n• Department: ${dept}\n• Priority: ${priority}\n• Time: ${time}\n\n✅ Patient would be added! (Demo mode - use the Add Patient button for actual adding)`;
+      } else {
+        botResponse = "Please use format: 'Add [Name], [Department], [Priority], [Time]'\nExample: 'Add John Doe, General, High, 10:30'";
+      }
+    } else if (input.match(/delete .+/) || input.match(/remove .+/)) {
+      const patientName = input.replace(/delete |remove |patient /, '').trim();
+      botResponse = `Searching for patient: ${patientName}\n\n✅ Patient would be deleted! (Demo mode - use the Delete button in Patients page for actual deletion)`;
+    } else {
+      // Regular keyword matching
+      const keyword = Object.keys(responses).find(key => input.includes(key));
+      botResponse = responses[keyword] || responses['default'];
+    }
     
     setTimeout(() => {
       setMessages(prev => [...prev, { text: botResponse, isBot: true }]);

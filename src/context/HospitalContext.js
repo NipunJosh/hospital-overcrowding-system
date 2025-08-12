@@ -94,6 +94,21 @@ export const HospitalProvider = ({ children }) => {
   };
 
   const addPatient = async (newPatient) => {
+    // Check if appointment is in the past
+    const now = new Date();
+    const appointmentDateTime = new Date(`${newPatient.date} ${newPatient.time}`);
+    
+    if (appointmentDateTime < now) {
+      const pastAlert = {
+        id: Date.now() + Math.random(),
+        severity: 'HIGH',
+        message: `Cannot schedule appointment in the past. Selected time: ${newPatient.time}`,
+        time: new Date().toLocaleTimeString().slice(0, 5)
+      };
+      setAlerts(prev => [pastAlert, ...prev]);
+      return; // Don't add the patient
+    }
+    
     // Check time slot capacity before adding
     const capacityCheck = checkTimeSlotCapacity(patients, newPatient);
     

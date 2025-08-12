@@ -116,9 +116,12 @@ def reschedule_patients():
             p.get('appointment_time', '23:59')  # Secondary sort by original time
         ))
         
-        # Generate new time slots starting from 9:00 AM
+        # Get target hour from request or default to 9 AM
+        target_hour = int(data.get('target_hour', '09:00').split(':')[0])
+        
+        # Generate new time slots starting from target hour
         rescheduled = []
-        current_hour = 9
+        current_hour = target_hour
         current_minute = 0
         
         def format_12_hour(hour, minute):

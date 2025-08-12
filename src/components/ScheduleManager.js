@@ -15,7 +15,8 @@ function ScheduleManager({ onReschedule }) {
         },
         body: JSON.stringify({
           target_hour: selectedHour,
-          action: 'priority_reschedule'
+          action: 'priority_reschedule',
+          reschedule_from_hour: selectedHour
         })
       });
       
