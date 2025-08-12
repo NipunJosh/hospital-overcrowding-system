@@ -22,6 +22,12 @@ export const HospitalProvider = ({ children }) => {
   const CAPACITY_LIMIT = 3;
 
   const addPatient = async (newPatient) => {
+    // Always update local state immediately for better UX
+    const updatedPatients = [...patients, newPatient];
+    setPatients(updatedPatients);
+    localStorage.setItem('hospitalPatients', JSON.stringify(updatedPatients));
+    
+    // Try to save to database in background
     try {
       const response = await fetch('/api/patients', {
         method: 'POST',
@@ -41,17 +47,12 @@ export const HospitalProvider = ({ children }) => {
       });
       
       if (response.ok) {
-        setPatients(prev => [...prev, newPatient]);
-        localStorage.setItem('hospitalPatients', JSON.stringify([...patients, newPatient]));
+        console.log('Patient saved to database successfully');
       } else {
-        console.error('Failed to save patient to database');
-        // Still add to local state as fallback
-        setPatients(prev => [...prev, newPatient]);
+        console.warn('Database save failed, using localStorage only');
       }
     } catch (error) {
-      console.error('Error saving patient:', error);
-      // Fallback to local storage only
-      setPatients(prev => [...prev, newPatient]);
+      console.warn('Database connection failed, using localStorage only:', error);
     }
   };
 
@@ -68,25 +69,38 @@ export const HospitalProvider = ({ children }) => {
         })
       });
       
-      if (response.ok) {
-        const updatedPatients = patients.map(patient => 
-          patient.id === patientId 
-            ? { ...patient, time: newTime, date: newDate, rescheduleReason: reason }
-            : patient
-        );
-        setPatients(updatedPatients);
-        localStorage.setItem('hospitalPatients', JSON.stringify(updatedPatients));
-      } else {
+      const updatedPatients = patients.map(patient => 
+        patient.id === patientId 
+          ? { ...patient, time: newTime, date: newDate, rescheduleReason: reason }
+          : patient
+      );
+      setPatients(updatedPatients);
+      localStorage.setItem('hospitalPatients', JSON.stringify(updatedPatients));
+      
+      // Generate alert for successful reschedule
+      const patient = patients.find(p => p.id === patientId);
+      if (patient) {
+        const rescheduleAlert = {
+          id: Date.now() + Math.random(),
+          severity: 'MEDIUM',
+          message: `${patient.name} rescheduled from ${patient.time} to ${newTime}`,
+          time: new Date().toLocaleTimeString().slice(0, 5)
+        };
+        setAlerts(prev => [rescheduleAlert, ...prev]);
+      }
+      
+      if (!response.ok) {
         console.error('Failed to reschedule patient in database');
       }
     } catch (error) {
       console.error('Error rescheduling patient:', error);
-      // Fallback to local update
-      setPatients(prev => prev.map(patient => 
+      // Still update locally
+      const updatedPatients = patients.map(patient => 
         patient.id === patientId 
           ? { ...patient, time: newTime, date: newDate, rescheduleReason: reason }
           : patient
-      ));
+      );
+      setPatients(updatedPatients);
     }
   };
 
@@ -126,6 +140,27 @@ export const HospitalProvider = ({ children }) => {
     const overcrowdedSlots = predictions.filter(slot => slot.predicted > CAPACITY_LIMIT);
     const availableSlots = predictions.filter(slot => slot.predicted < CAPACITY_LIMIT);
     
+    // Generate alerts for overcrowded slots
+    if (overcrowdedSlots.length > 0) {
+      const newAlerts = overcrowdedSlots.map(slot => ({
+        id: Date.now() + Math.random(),
+        severity: 'HIGH',
+        message: `Capacity exceeded at ${slot.time}: ${slot.predicted}/${slot.capacity} patients`,
+        time: new Date().toLocaleTimeString().slice(0, 5)
+      }));
+      
+      setAlerts(prev => {
+        // Avoid duplicate alerts for same time slot
+        const existingTimes = prev.map(a => a.message.match(/at (\d{2}:\d{2})/)?.[1]).filter(Boolean);
+        const uniqueAlerts = newAlerts.filter(alert => {
+          const time = alert.message.match(/at (\d{2}:\d{2})/)?.[1];
+          return !existingTimes.includes(time);
+        });
+        return [...uniqueAlerts, ...prev];
+      });
+    }
+    
+    // Show reschedule options if there are available slots
     if (overcrowdedSlots.length > 0 && availableSlots.length > 0) {
       const overcrowdedSlot = overcrowdedSlots[0];
       const excessPatients = overcrowdedSlot.patients.slice(CAPACITY_LIMIT)
@@ -149,14 +184,22 @@ export const HospitalProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, [patients]);
 
-  // Load patients from database on mount
+  // Load patients from localStorage first, then try database
   useEffect(() => {
     const loadPatients = async () => {
+      // Always load from localStorage first for immediate display
+      const savedPatients = localStorage.getItem('hospitalPatients');
+      if (savedPatients) {
+        const localPatients = JSON.parse(savedPatients);
+        setPatients(localPatients);
+        console.log('Loaded patients from localStorage:', localPatients.length);
+      }
+      
+      // Try to sync with database in background
       try {
         const response = await fetch('/api/patients');
         if (response.ok) {
           const dbPatients = await response.json();
-          // Convert database format to frontend format
           const formattedPatients = dbPatients.map(p => ({
             id: p.patient_id,
             name: p.name,
@@ -168,22 +211,18 @@ export const HospitalProvider = ({ children }) => {
             healthCondition: p.health_condition || '',
             rescheduleReason: p.reschedule_reason || ''
           }));
-          setPatients(formattedPatients);
-          localStorage.setItem('hospitalPatients', JSON.stringify(formattedPatients));
-        } else {
-          // Fallback to localStorage if API fails
-          const savedPatients = localStorage.getItem('hospitalPatients');
-          if (savedPatients) {
-            setPatients(JSON.parse(savedPatients));
+          
+          // Only update if database has more recent data
+          if (formattedPatients.length > 0) {
+            setPatients(formattedPatients);
+            localStorage.setItem('hospitalPatients', JSON.stringify(formattedPatients));
+            console.log('Synced with database:', formattedPatients.length, 'patients');
           }
+        } else {
+          console.warn('Database connection failed, using localStorage only');
         }
       } catch (error) {
-        console.error('Error loading patients:', error);
-        // Fallback to localStorage
-        const savedPatients = localStorage.getItem('hospitalPatients');
-        if (savedPatients) {
-          setPatients(JSON.parse(savedPatients));
-        }
+        console.warn('Database sync failed, using localStorage only:', error);
       }
     };
     

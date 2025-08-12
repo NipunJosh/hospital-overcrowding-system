@@ -10,11 +10,11 @@ function RescheduleOptionsPopup({ options, onReschedule, onClose }) {
     }));
   };
 
-  const handleConfirmReschedules = () => {
-    Object.entries(selectedReschedules).forEach(([patientId, newTime]) => {
+  const handleConfirmReschedules = async () => {
+    const reschedulePromises = Object.entries(selectedReschedules).map(async ([patientId, newTime]) => {
       const patient = options.excessPatients.find(p => p.id === patientId);
       if (patient && newTime) {
-        onReschedule(
+        await onReschedule(
           patientId,
           newTime,
           patient.date,
@@ -22,6 +22,8 @@ function RescheduleOptionsPopup({ options, onReschedule, onClose }) {
         );
       }
     });
+    
+    await Promise.all(reschedulePromises);
     onClose();
   };
 

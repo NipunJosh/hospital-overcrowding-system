@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PredictionChart from '../components/PredictionChart';
 import { useHospital } from '../context/HospitalContext';
 
 function PredictionsPage() {
-  const { getHourlyPredictions } = useHospital();
-  const predictions = getHourlyPredictions();
+  const { getHourlyPredictions, patients } = useHospital();
+  const [predictions, setPredictions] = useState([]);
+  
+  // Update predictions when patients change
+  useEffect(() => {
+    setPredictions(getHourlyPredictions());
+  }, [patients, getHourlyPredictions]);
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <PredictionChart predictions={predictions} />
