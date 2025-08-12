@@ -5,9 +5,9 @@ import os
 
 class HospitalDB:
     def __init__(self):
-        # MongoDB Atlas connection
+        # MongoDB Atlas connection with SSL fix
         uri = "mongodb+srv://fishhaven737:7Jfcn9qnvQ2FDS9g@hospital-overcrowding-s.lppiehn.mongodb.net/?retryWrites=true&w=majority&appName=hospital-overcrowding-system"
-        self.client = MongoClient(uri, server_api=ServerApi('1'))
+        self.client = MongoClient(uri, server_api=ServerApi('1'), tlsAllowInvalidCertificates=True)
         self.db = self.client.hospital_system
         
         # Test connection
