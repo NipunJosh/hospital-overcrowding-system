@@ -42,10 +42,24 @@ function PredictionsPage() {
               <div style={{ fontSize: '0.8rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
                 {pred.patients.length > 0 ? (
                   <div>
-                    <strong>Patients:</strong>
-                    {pred.patients.map(p => (
-                      <div key={p.id} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
-                        {p.name} ({p.priority})
+                    <div style={{ fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+                      <strong>Total Duration: {pred.totalDuration || 0} min</strong>
+                    </div>
+                    {pred.patients.map((p, idx) => (
+                      <div key={idx} style={{ 
+                        fontSize: '0.7rem', 
+                        marginTop: '0.25rem',
+                        padding: '0.25rem',
+                        background: 'rgba(255,255,255,0.5)',
+                        borderRadius: '4px'
+                      }}>
+                        <div><strong>{p.name}</strong> - {p.time}</div>
+                        <div>{p.department} | {p.priority} | {p.duration}min</div>
+                        {p.healthCondition && (
+                          <div style={{ fontSize: '0.6rem', fontStyle: 'italic' }}>
+                            {p.healthCondition.slice(0, 30)}...
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

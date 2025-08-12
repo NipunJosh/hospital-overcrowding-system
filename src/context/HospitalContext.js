@@ -43,7 +43,41 @@ export const HospitalProvider = ({ children }) => {
     }
   };
 
+  const checkHourlyCapacity = (patients, newPatient) => {
+    const appointmentHour = new Date(`${newPatient.date} ${newPatient.time}`).getHours();
+    const sameHourPatients = patients.filter(p => {
+      const patientHour = new Date(`${p.date} ${p.time}`).getHours();
+      return patientHour === appointmentHour && p.date === newPatient.date;
+    });
+    
+    // Calculate total duration for the hour
+    const totalDuration = sameHourPatients.reduce((sum, p) => sum + (p.duration || 30), 0) + (newPatient.duration || 30);
+    
+    return {
+      patientCount: sameHourPatients.length,
+      totalDuration,
+      exceedsLimit: sameHourPatients.length >= 3 || totalDuration > 60
+    };
+  };
+
   const addPatient = async (newPatient) => {
+    // Check hourly capacity before adding
+    const capacityCheck = checkHourlyCapacity(patients, newPatient);
+    
+    if (capacityCheck.exceedsLimit) {
+      // Generate alert for capacity exceeded
+      const capacityAlert = {
+        id: Date.now() + Math.random(),
+        severity: 'HIGH',
+        message: `Hour ${newPatient.time} exceeded capacity (${capacityCheck.patientCount + 1} patients, ${capacityCheck.totalDuration} min total). Patient needs rescheduling.`,
+        time: new Date().toLocaleTimeString().slice(0, 5)
+      };
+      setAlerts(prev => [capacityAlert, ...prev]);
+      
+      // Mark patient for rescheduling
+      newPatient.needsRescheduling = true;
+    }
+    
     // Always update local state immediately for better UX
     const updatedPatients = [...patients, newPatient];
     setPatients(updatedPatients);
@@ -148,8 +182,16 @@ export const HospitalProvider = ({ children }) => {
       const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
       
       if (hourlyData[timeSlot]) {
-        hourlyData[timeSlot].patients.push(patient);
+        hourlyData[timeSlot].patients.push({
+          name: patient.name,
+          time: patient.time,
+          department: patient.dept,
+          priority: patient.priority,
+          duration: patient.duration || 30,
+          healthCondition: patient.healthCondition
+        });
         hourlyData[timeSlot].predicted = hourlyData[timeSlot].patients.length;
+        hourlyData[timeSlot].totalDuration = hourlyData[timeSlot].patients.reduce((sum, p) => sum + p.duration, 0);
       }
     });
 
