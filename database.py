@@ -16,7 +16,6 @@ class HospitalDB:
                 uri, 
                 server_api=ServerApi('1'),
                 tlsAllowInvalidCertificates=True,
-                tlsInsecure=True,
                 connectTimeoutMS=10000,
                 serverSelectionTimeoutMS=10000,
                 maxPoolSize=1
@@ -26,7 +25,7 @@ class HospitalDB:
             self.client = None
         self.db = self.client.hospital_system
         
-        # Test connection and initialize collections
+        # Initialize collections with fallback
         if self.client:
             try:
                 self.client.admin.command('ping')
@@ -36,14 +35,17 @@ class HospitalDB:
                 self.predictions = self.db.predictions
                 self.alerts = self.db.alerts
                 self.schedules = self.db.schedules
+                self.connected = True
             except Exception as e:
                 print(f"MongoDB connection failed: {e}")
                 self.client = None
+                self.connected = False
         else:
             print("MongoDB client initialization failed")
+            self.connected = False
     
     def add_patient(self, patient_data):
-        if not self.client:
+        if not self.connected:
             raise Exception("MongoDB not connected")
         return self.patients.insert_one(patient_data)
     
