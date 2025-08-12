@@ -1,15 +1,22 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
-from database import HospitalDB
+try:
+    from database import HospitalDB
+    db = HospitalDB()
+    if not db.connected:
+        raise Exception("MongoDB failed")
+except:
+    print("MongoDB failed, using Simple Database")
+    from simple_db import SimpleDB
+    db = SimpleDB()
 from models import Patient, PatientType, Priority
 import json
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize database
-db = HospitalDB()
+# Database initialization is now handled above
 
 @app.route('/api/patients', methods=['GET'])
 def get_patients():
