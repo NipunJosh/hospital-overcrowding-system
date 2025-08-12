@@ -67,19 +67,29 @@ export const HospitalProvider = ({ children }) => {
       };
     }
     
-    // Find patients in same time slot and department
-    const sameSlotPatients = patients.filter(p => {
-      return p.time === newPatient.time && 
-             p.date === newPatient.date && 
-             p.department === newPatient.department;
+    // Calculate time slot end time based on patient durations
+    const [newHour, newMinute] = newPatient.time.split(':').map(Number);
+    const newStartTime = newHour * 60 + newMinute;
+    const newEndTime = newStartTime + (newPatient.duration || 30);
+    
+    // Find overlapping patients in same department
+    const overlappingPatients = patients.filter(p => {
+      if (p.date !== newPatient.date || p.department !== newPatient.department) return false;
+      
+      const [pHour, pMinute] = p.time.split(':').map(Number);
+      const pStartTime = pHour * 60 + pMinute;
+      const pEndTime = pStartTime + (p.duration || 30);
+      
+      // Check if time slots overlap
+      return (newStartTime < pEndTime && newEndTime > pStartTime);
     });
     
     return {
-      patientCount: sameSlotPatients.length,
+      patientCount: overlappingPatients.length,
       maxCapacity: maxDoctors,
-      exceedsLimit: sameSlotPatients.length >= maxDoctors,
-      reason: sameSlotPatients.length >= maxDoctors ? 
-        `Department ${newPatient.department} full (${sameSlotPatients.length}/${maxDoctors} doctors busy)` : null
+      exceedsLimit: overlappingPatients.length >= maxDoctors,
+      reason: overlappingPatients.length >= maxDoctors ? 
+        `Department ${newPatient.department} full - ${overlappingPatients.length}/${maxDoctors} doctors busy during ${newPatient.time}` : null
     };
   };
 
