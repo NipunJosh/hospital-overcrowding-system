@@ -300,7 +300,6 @@ export const HospitalProvider = ({ children }) => {
       const availableSlots = [];
       for (let hour = 9; hour <= 17; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
-          const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
           const period = hour >= 12 ? 'PM' : 'AM';
           const displayHour = hour > 12 ? hour - 12 : hour;
           const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
