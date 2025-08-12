@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHospital } from '../context/HospitalContext';
+import TimeSlotPicker from './TimeSlotPicker';
 
 function SmartRescheduleForm({ patient, onReschedule, onClose }) {
   const { patients } = useHospital();
@@ -133,30 +134,11 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
                 Available Time Slots
               </label>
-              <select
+              <TimeSlotPicker 
                 value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '10px'
-                }}
-              >
-                {availableSlots.map(slot => (
-                  <option 
-                    key={slot.value} 
-                    value={slot.value}
-                    disabled={!slot.available}
-                    style={{ 
-                      color: slot.available ? 'black' : '#ccc',
-                      background: slot.available ? 'white' : '#f5f5f5'
-                    }}
-                  >
-                    {slot.display} {slot.available ? `(${slot.occupancy} busy)` : '(FULL)'}
-                  </option>
-                ))}
-              </select>
+                onChange={setNewTime}
+                availableSlots={availableSlots}
+              />
             </div>
           </div>
 

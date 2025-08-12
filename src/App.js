@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navigation from './components/Navigation';
 import Chatbot from './components/Chatbot';
+import AlertToast from './components/AlertToast';
 import RescheduleOptionsPopup from './components/RescheduleOptionsPopup';
 import DashboardPage from './pages/DashboardPage';
 import PredictionsPage from './pages/PredictionsPage';
@@ -37,6 +38,7 @@ function AppContent() {
       {renderPage()}
       
       <Chatbot />
+      <AlertToast />
       
       {showRescheduleOptions && (
         <RescheduleOptionsPopup
