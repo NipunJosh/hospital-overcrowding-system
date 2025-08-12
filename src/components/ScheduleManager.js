@@ -16,7 +16,8 @@ function ScheduleManager({ onReschedule }) {
         body: JSON.stringify({
           target_hour: selectedHour,
           action: 'priority_reschedule',
-          reschedule_from_hour: selectedHour
+          reschedule_from_hour: selectedHour,
+          existing_patients: JSON.parse(localStorage.getItem('hospitalPatients') || '[]')
         })
       });
       
@@ -46,17 +47,19 @@ function ScheduleManager({ onReschedule }) {
       <h3>⚡ Dynamic Rescheduling</h3>
       
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Target Hour:</label>
-        <select 
-          value={selectedHour} 
+        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Start Rescheduling From Time:</label>
+        <input
+          type="time"
+          value={selectedHour}
           onChange={(e) => setSelectedHour(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
-        >
-          <option value="09:00">9:00 AM - Morning Rush</option>
-          <option value="10:00">10:00 AM - Peak Load</option>
-          <option value="11:00">11:00 AM - High Activity</option>
-          <option value="12:00">12:00 PM - Lunch Hour</option>
-        </select>
+          style={{ 
+            width: '100%', 
+            padding: '0.75rem', 
+            borderRadius: '10px', 
+            border: '1px solid #ddd',
+            fontSize: '1rem'
+          }}
+        />
       </div>
 
       <button 

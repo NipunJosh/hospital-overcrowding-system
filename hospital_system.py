@@ -99,8 +99,23 @@ def reschedule_patients():
     data = request.json
     
     try:
-        # Get all patients
-        patients = db.get_patients()
+        # Get all existing patients from database and frontend context
+        db_patients = db.get_patients() if hasattr(db, 'get_patients') else []
+        
+        # Also get patients from request if provided (frontend context)
+        frontend_patients = data.get('existing_patients', [])
+        
+        # Combine database and frontend patients
+        all_patients = db_patients + frontend_patients
+        
+        # Remove duplicates based on patient_id
+        seen_ids = set()
+        patients = []
+        for p in all_patients:
+            pid = p.get('patient_id') or p.get('id')
+            if pid not in seen_ids:
+                patients.append(p)
+                seen_ids.add(pid)
         
         # AI Priority Algorithm: Intelligent rescheduling based on medical priority
         priority_weights = {
@@ -140,7 +155,11 @@ def reschedule_patients():
             # Create new appointment time in 12-hour format
             new_time_12h = format_12_hour(current_hour, current_minute)
             new_time_24h = f"{current_hour:02d}:{current_minute:02d}"
-            old_time = patient.get('appointment_time', 'Unknown')
+            
+            # Get old time from various possible fields
+            old_time = patient.get('appointment_time') or patient.get('time', 'Unknown')
+            if isinstance(old_time, str) and ':' not in str(old_time):
+                old_time = 'Unknown'
             
             # Update patient in database
             if hasattr(db, 'update_patient_schedule'):
@@ -161,13 +180,13 @@ def reschedule_patients():
             shift_direction = "earlier" if current_hour < old_hour else "later" if current_hour > old_hour else "same time"
             
             rescheduled.append({
-                'patient_id': patient['patient_id'],
-                'name': patient['name'],
+                'patient_id': patient.get('patient_id') or patient.get('id', f'P{len(rescheduled)+1}'),
+                'name': patient.get('name', 'Unknown Patient'),
                 'priority': patient.get('priority', 'medium'),
                 'old_time': old_time,
                 'new_time': new_time_12h,
                 'shift_direction': shift_direction,
-                'reason': f"AI Algorithm: {patient.get('priority', 'medium')} priority moved {shift_direction}"
+                'reason': f"AI Priority Shift: {patient.get('priority', 'medium')} priority moved {shift_direction}"
             })
             
             # Increment time by 30 minutes
