@@ -1,1 +1,0 @@
-web: python hospital_system.py
