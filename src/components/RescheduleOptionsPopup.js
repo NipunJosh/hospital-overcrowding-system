@@ -11,20 +11,31 @@ function RescheduleOptionsPopup({ options, onReschedule, onClose }) {
   };
 
   const handleConfirmReschedules = async () => {
-    const reschedulePromises = Object.entries(selectedReschedules).map(async ([patientId, newTime]) => {
-      const patient = options.excessPatients.find(p => p.id === patientId);
-      if (patient && newTime) {
-        await onReschedule(
-          patientId,
-          newTime,
-          patient.date,
-          `Manual reschedule: Capacity exceeded at ${options.overcrowdedSlot.time}`
-        );
+    try {
+      for (const [patientId, newTimeSlot] of Object.entries(selectedReschedules)) {
+        const patient = options.excessPatients.find(p => p.id === patientId);
+        if (patient && newTimeSlot) {
+          // Extract hour from time slot (e.g., "10:00 AM" -> "10:00")
+          const newTime = newTimeSlot.split(' ')[0];
+          const today = new Date().toISOString().split('T')[0];
+          
+          console.log(`Rescheduling ${patient.name} from ${patient.time} to ${newTime}`);
+          
+          await onReschedule(
+            patientId,
+            newTime,
+            today,
+            `Manual reschedule: Capacity exceeded at ${options.overcrowdedSlot.time}`
+          );
+        }
       }
-    });
-    
-    await Promise.all(reschedulePromises);
-    onClose();
+      
+      console.log('All reschedules completed');
+      onClose();
+    } catch (error) {
+      console.error('Reschedule failed:', error);
+      alert('Rescheduling failed: ' + error.message);
+    }
   };
 
   return (
@@ -90,6 +101,11 @@ function RescheduleOptionsPopup({ options, onReschedule, onClose }) {
                     {slot.time} ({slot.predicted}/{slot.capacity} patients)
                   </option>
                 ))}
+                <option value="11:00">11:00 AM (Available)</option>
+                <option value="12:00">12:00 PM (Available)</option>
+                <option value="13:00">1:00 PM (Available)</option>
+                <option value="14:00">2:00 PM (Available)</option>
+                <option value="15:00">3:00 PM (Available)</option>
               </select>
             </div>
           ))}
