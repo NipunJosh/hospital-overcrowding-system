@@ -110,11 +110,16 @@ def reschedule_patients():
             'low': 4          # Routine checkups - later slots
         }
         
-        # AI sorts patients by priority (understands medical urgency)
-        sorted_patients = sorted(patients, key=lambda p: (
-            priority_weights.get(p.get('priority', 'low').lower(), 4),
-            p.get('appointment_time', '23:59')  # Secondary sort by original time
-        ))
+        # AI Priority Shifting Algorithm: Move high/critical before medium/low
+        critical_high = [p for p in patients if p.get('priority', 'low').lower() in ['critical', 'high']]
+        medium_low = [p for p in patients if p.get('priority', 'low').lower() in ['medium', 'low']]
+        
+        # Sort each group by priority weight
+        critical_high_sorted = sorted(critical_high, key=lambda p: priority_weights.get(p.get('priority', 'low').lower(), 4))
+        medium_low_sorted = sorted(medium_low, key=lambda p: priority_weights.get(p.get('priority', 'low').lower(), 4))
+        
+        # Combine: High priority patients first, then medium/low
+        sorted_patients = critical_high_sorted + medium_low_sorted
         
         # Get target hour from request or default to 9 AM
         target_hour = int(data.get('target_hour', '09:00').split(':')[0])

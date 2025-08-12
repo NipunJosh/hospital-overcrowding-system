@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useHospital } from '../context/HospitalContext';
 
 function Chatbot() {
+  const { patients } = useHospital();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { text: "Hello! I'm your Hospital Assistant. How can I help you today?", isBot: true }
@@ -22,6 +24,10 @@ function Chatbot() {
     'ai': "AI Features:\n• Priority-based rescheduling algorithm\n• Real-time capacity monitoring\n• Predictive overcrowding alerts\n• Intelligent time slot optimization",
     'priority': "Priority Levels:\n• Critical: Life-threatening, earliest slots\n• High: Urgent medical needs\n• Medium: Standard appointments\n• Low: Routine checkups, latest slots",
     'features': "Key Features:\n• Doctor capacity management\n• AI priority rescheduling\n• Real-time predictions\n• Emergency-only after midnight\n• Smart time slot picker\n• Bottom-left alert toasts",
+    'count': "Let me check the current patient count for you...",
+    'how many': "Let me check the current patient count for you...",
+    'number': "Let me check the current patient count for you...",
+    'total': "Let me check the current patient count for you...",
     'default': "I can help with: patients, doctors, scheduling, predictions, alerts, capacity, emergency rules, AI features, priorities, or any other aspect of the hospital management system. What would you like to know?"
   };
 
@@ -51,6 +57,12 @@ function Chatbot() {
     } else if (input.match(/delete .+/) || input.match(/remove .+/)) {
       const patientName = input.replace(/delete |remove |patient /, '').trim();
       botResponse = `Searching for patient: ${patientName}\n\n✅ Patient would be deleted! (Demo mode - use the Delete button in Patients page for actual deletion)`;
+    } else if (input.includes('count') || input.includes('how many') || input.includes('number') || input.includes('total')) {
+      const today = new Date().toISOString().split('T')[0];
+      const todayPatients = patients.filter(p => p.date === today);
+      const criticalCount = todayPatients.filter(p => p.priority === 'Critical').length;
+      const emergencyCount = todayPatients.filter(p => p.type === 'Emergency').length;
+      botResponse = `📊 Current Patient Statistics:\n\n• Total Active Patients: ${patients.length}\n• Today's Appointments: ${todayPatients.length}\n• Critical Priority: ${criticalCount}\n• Emergency Cases: ${emergencyCount}\n\nLast updated: ${new Date().toLocaleTimeString()}`;
     } else {
       // Regular keyword matching
       const keyword = Object.keys(responses).find(key => input.includes(key));

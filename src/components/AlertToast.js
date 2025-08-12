@@ -6,19 +6,29 @@ function AlertToast() {
   const [visibleAlerts, setVisibleAlerts] = useState([]);
 
   useEffect(() => {
-    if (alerts.length > 0) {
+    if (alerts.length > 0 && visibleAlerts.length === 0) {
       const newAlert = alerts[0];
-      setVisibleAlerts(prev => [...prev, { ...newAlert, id: Date.now() + Math.random() }]);
-      
-      // Auto-remove after 5 seconds
-      setTimeout(() => {
-        setVisibleAlerts(prev => prev.filter(alert => alert.id !== newAlert.id));
-      }, 5000);
+      // Only show HIGH and CRITICAL alerts
+      if (newAlert.severity === 'HIGH' || newAlert.severity === 'CRITICAL') {
+        setVisibleAlerts([{ ...newAlert, id: Date.now() + Math.random() }]);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+          setVisibleAlerts([]);
+        }, 8000);
+      }
     }
-  }, [alerts]);
+  }, [alerts, visibleAlerts.length]);
 
   const removeAlert = (alertId) => {
-    setVisibleAlerts(prev => prev.filter(alert => alert.id !== alertId));
+    setVisibleAlerts([]);
+    // Show next alert after a brief delay
+    setTimeout(() => {
+      const nextAlert = alerts.find(a => a.severity === 'HIGH' || a.severity === 'CRITICAL');
+      if (nextAlert && alerts.indexOf(nextAlert) > 0) {
+        setVisibleAlerts([{ ...alerts[alerts.indexOf(nextAlert)], id: Date.now() + Math.random() }]);
+      }
+    }, 500);
   };
 
   const getSeverityColor = (severity) => {

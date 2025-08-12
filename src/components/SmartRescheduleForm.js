@@ -120,7 +120,6 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
