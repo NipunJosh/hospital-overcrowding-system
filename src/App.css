@@ -275,6 +275,11 @@
   cursor: pointer;
 }
 
+@keyframes loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 @media (max-width: 768px) {
   .app-content {
     grid-template-columns: 1fr;
