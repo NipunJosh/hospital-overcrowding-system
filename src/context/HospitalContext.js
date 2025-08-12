@@ -254,45 +254,86 @@ export const HospitalProvider = ({ children }) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const checkCapacityAndShowOptions = useCallback(() => {
-    const predictions = getHourlyPredictions();
-    const overcrowdedSlots = predictions.filter(slot => slot.predicted > CAPACITY_LIMIT);
-    const availableSlots = predictions.filter(slot => slot.predicted < CAPACITY_LIMIT);
+    const doctorCounts = getDoctorCounts();
+    const today = new Date().toISOString().split('T')[0];
+    const todayPatients = patients.filter(p => p.date === today);
+    
+    // Group patients by time slot and department
+    const timeSlots = {};
+    todayPatients.forEach(patient => {
+      const key = `${patient.time}-${patient.department}`;
+      if (!timeSlots[key]) {
+        timeSlots[key] = {
+          time: patient.time,
+          department: patient.department,
+          patients: [],
+          capacity: doctorCounts[patient.department] || 1
+        };
+      }
+      timeSlots[key].patients.push(patient);
+    });
+    
+    // Find overcrowded slots
+    const overcrowdedSlots = Object.values(timeSlots).filter(slot => 
+      slot.patients.length > slot.capacity
+    );
     
     // Generate alerts for overcrowded slots
     if (overcrowdedSlots.length > 0) {
       const newAlerts = overcrowdedSlots.map(slot => ({
         id: Date.now() + Math.random(),
         severity: 'HIGH',
-        message: `Capacity exceeded at ${slot.time}: ${slot.predicted}/${slot.capacity} patients`,
+        message: `${slot.department} department full at ${slot.time}: ${slot.patients.length}/${slot.capacity} doctors busy`,
         time: new Date().toLocaleTimeString().slice(0, 5)
       }));
       
-      setAlerts(prev => {
-        // Avoid duplicate alerts for same time slot
-        const existingTimes = prev.map(a => a.message.match(/at (\d{2}:\d{2})/)?.[1]).filter(Boolean);
-        const uniqueAlerts = newAlerts.filter(alert => {
-          const time = alert.message.match(/at (\d{2}:\d{2})/)?.[1];
-          return !existingTimes.includes(time);
-        });
-        return [...uniqueAlerts, ...prev];
-      });
+      setAlerts(prev => [...newAlerts, ...prev.slice(0, 10)]); // Keep only recent 10 alerts
     }
     
-    // Show reschedule options if there are available slots
-    if (overcrowdedSlots.length > 0 && availableSlots.length > 0) {
+    // Show reschedule options for first overcrowded slot
+    if (overcrowdedSlots.length > 0) {
       const overcrowdedSlot = overcrowdedSlots[0];
-      const excessPatients = overcrowdedSlot.patients.slice(CAPACITY_LIMIT)
+      const excessPatients = overcrowdedSlot.patients.slice(overcrowdedSlot.capacity)
         .filter(p => p.priority !== 'Critical' && p.type !== 'Emergency');
+      
+      // Generate available slots (simplified)
+      const availableSlots = [];
+      for (let hour = 9; hour <= 17; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          const period = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour > 12 ? hour - 12 : hour;
+          const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+          
+          availableSlots.push({
+            time: displayTime,
+            predicted: 0,
+            capacity: overcrowdedSlot.capacity
+          });
+        }
+      }
       
       if (excessPatients.length > 0) {
         setShowRescheduleOptions({
-          overcrowdedSlot,
-          excessPatients,
+          overcrowdedSlot: {
+            ...overcrowdedSlot,
+            time: overcrowdedSlot.time,
+            predicted: overcrowdedSlot.patients.length
+          },
+          excessPatients: excessPatients.map(p => ({
+            id: p.id,
+            name: p.name,
+            time: p.time,
+            dept: p.dept,
+            department: p.department,
+            priority: p.priority,
+            date: p.date
+          })),
           availableSlots
         });
       }
     }
-  }, [patients, CAPACITY_LIMIT, setAlerts, setShowRescheduleOptions, getHourlyPredictions]);
+  }, [patients, setAlerts, setShowRescheduleOptions, getDoctorCounts]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
