@@ -419,34 +419,37 @@ export const HospitalProvider = ({ children }) => {
       const currentTime = now.getHours() * 60 + now.getMinutes();
       const today = now.toISOString().split('T')[0];
       
-      patients.forEach(patient => {
-        if (patient.date === today) {
-          const [hours, minutes] = patient.time.split(':').map(Number);
-          const appointmentTime = hours * 60 + minutes;
-          const duration = patient.duration || 30; // Default 30 minutes
-          const endTime = appointmentTime + duration;
-          
-          // Delete if appointment ended
-          if (currentTime > endTime) {
-            deletePatient(patient.id);
-            
-            // Generate alert for auto-deletion
-            const deleteAlert = {
-              id: Date.now() + Math.random(),
-              severity: 'LOW',
-              message: `${patient.name} appointment completed - auto-removed`,
-              time: new Date().toLocaleTimeString().slice(0, 5)
-            };
-            setAlerts(prev => [deleteAlert, ...prev]);
-          }
-        }
+      const expiredPatients = patients.filter(patient => {
+        if (patient.date !== today) return false;
+        
+        const [hours, minutes] = patient.time.split(':').map(Number);
+        const appointmentTime = hours * 60 + minutes;
+        const duration = patient.duration || 30;
+        const endTime = appointmentTime + duration;
+        
+        return currentTime > endTime;
       });
+      
+      if (expiredPatients.length > 0) {
+        // Remove expired patients
+        setPatients(prev => prev.filter(p => !expiredPatients.some(exp => exp.id === p.id)));
+        
+        // Generate alert
+        const deleteAlert = {
+          id: Date.now() + Math.random(),
+          severity: 'INFO',
+          message: `${expiredPatients.length} completed appointments auto-removed`,
+          time: new Date().toLocaleTimeString().slice(0, 5)
+        };
+        setAlerts(prev => [deleteAlert, ...prev]);
+      }
     };
     
-    // Check every minute
-    const interval = setInterval(checkExpiredAppointments, 60000);
+    // Check immediately and then every 30 seconds
+    checkExpiredAppointments();
+    const interval = setInterval(checkExpiredAppointments, 30000);
     return () => clearInterval(interval);
-  }, [patients, deletePatient, setAlerts]);
+  }, [patients, setAlerts]);
 
   // Save patients to localStorage whenever patients change
   useEffect(() => {
