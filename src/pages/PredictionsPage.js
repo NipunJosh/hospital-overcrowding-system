@@ -26,7 +26,7 @@ function PredictionsPage() {
       
       <div className="card" style={{ marginTop: '2rem' }}>
         <h3>📊 Prediction Details</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
           {predictions.map((pred, index) => (
             <div key={index} style={{
               padding: '1rem',

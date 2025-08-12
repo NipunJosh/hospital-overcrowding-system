@@ -167,24 +167,43 @@ export const HospitalProvider = ({ children }) => {
     
     const hourlyData = {};
     
-    for (let hour = 9; hour <= 17; hour++) {
+    // First, create slots for all patient times
+    todayPatients.forEach(patient => {
+      const hour = parseInt(patient.time.split(':')[0]);
       const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-      hourlyData[timeSlot] = {
-        time: timeSlot,
-        patients: [],
-        predicted: 0,
-        capacity: CAPACITY_LIMIT
-      };
-    }
-
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const displayTime = `${displayHour}:00 ${period}`;
+      
+      if (!hourlyData[timeSlot]) {
+        hourlyData[timeSlot] = {
+          time: displayTime,
+          timeSlot: timeSlot,
+          hour: hour,
+          patients: [],
+          predicted: 0,
+          capacity: CAPACITY_LIMIT,
+          totalDuration: 0
+        };
+      }
+    });
+    
+    // Add patients to their respective time slots
     todayPatients.forEach(patient => {
       const hour = parseInt(patient.time.split(':')[0]);
       const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
       
       if (hourlyData[timeSlot]) {
+        // Convert patient time to 12-hour format
+        const [h, m] = patient.time.split(':');
+        const patientHour = parseInt(h);
+        const period = patientHour >= 12 ? 'PM' : 'AM';
+        const displayHour = patientHour === 0 ? 12 : patientHour > 12 ? patientHour - 12 : patientHour;
+        const displayTime = `${displayHour}:${m} ${period}`;
+        
         hourlyData[timeSlot].patients.push({
           name: patient.name,
-          time: patient.time,
+          time: displayTime,
           department: patient.dept,
           priority: patient.priority,
           duration: patient.duration || 30,
@@ -195,7 +214,8 @@ export const HospitalProvider = ({ children }) => {
       }
     });
 
-    return Object.values(hourlyData);
+    // Sort by hour and return
+    return Object.values(hourlyData).sort((a, b) => a.hour - b.hour);
   }, [patients, CAPACITY_LIMIT]);
 
   const [showRescheduleOptions, setShowRescheduleOptions] = useState(null);
