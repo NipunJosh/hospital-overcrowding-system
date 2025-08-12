@@ -131,7 +131,7 @@ export const HospitalProvider = ({ children }) => {
     });
 
     return Object.values(hourlyData);
-  }, [patients, CAPACITY_LIMIT]);
+  }, [CAPACITY_LIMIT]);
 
   const [showRescheduleOptions, setShowRescheduleOptions] = useState(null);
 
