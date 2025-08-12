@@ -21,6 +21,28 @@ export const HospitalProvider = ({ children }) => {
   const [alerts, setAlerts] = useState([]);
   const CAPACITY_LIMIT = 3;
 
+  const deletePatient = async (patientId) => {
+    try {
+      const response = await fetch(`https://hospital-overcrowding-system-1.onrender.com/api/patients/${patientId}`, {
+        method: 'DELETE'
+      });
+      
+      const updatedPatients = patients.filter(p => p.id !== patientId);
+      setPatients(updatedPatients);
+      localStorage.setItem('hospitalPatients', JSON.stringify(updatedPatients));
+      
+      if (response.ok) {
+        console.log('Patient deleted from database successfully');
+      } else {
+        console.warn('Database delete failed, removed from localStorage only');
+      }
+    } catch (error) {
+      console.warn('Database connection failed, removed from localStorage only:', error);
+      const updatedPatients = patients.filter(p => p.id !== patientId);
+      setPatients(updatedPatients);
+    }
+  };
+
   const addPatient = async (newPatient) => {
     // Always update local state immediately for better UX
     const updatedPatients = [...patients, newPatient];
@@ -231,6 +253,42 @@ export const HospitalProvider = ({ children }) => {
     loadPatients();
   }, []);
 
+  // Auto-delete expired appointments
+  useEffect(() => {
+    const checkExpiredAppointments = () => {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      const today = now.toISOString().split('T')[0];
+      
+      patients.forEach(patient => {
+        if (patient.date === today) {
+          const [hours, minutes] = patient.time.split(':').map(Number);
+          const appointmentTime = hours * 60 + minutes;
+          const duration = patient.duration || 30; // Default 30 minutes
+          const endTime = appointmentTime + duration;
+          
+          // Delete if appointment ended
+          if (currentTime > endTime) {
+            deletePatient(patient.id);
+            
+            // Generate alert for auto-deletion
+            const deleteAlert = {
+              id: Date.now() + Math.random(),
+              severity: 'LOW',
+              message: `${patient.name} appointment completed - auto-removed`,
+              time: new Date().toLocaleTimeString().slice(0, 5)
+            };
+            setAlerts(prev => [deleteAlert, ...prev]);
+          }
+        }
+      });
+    };
+    
+    // Check every minute
+    const interval = setInterval(checkExpiredAppointments, 60000);
+    return () => clearInterval(interval);
+  }, [patients, deletePatient, setAlerts]);
+
   // Save patients to localStorage whenever patients change
   useEffect(() => {
     localStorage.setItem('hospitalPatients', JSON.stringify(patients));
@@ -240,6 +298,7 @@ export const HospitalProvider = ({ children }) => {
     patients,
     alerts,
     addPatient,
+    deletePatient,
     reschedulePatient,
     getHourlyPredictions,
     setAlerts,

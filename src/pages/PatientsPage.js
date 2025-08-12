@@ -4,7 +4,7 @@ import RescheduleForm from '../components/RescheduleForm';
 import { useHospital } from '../context/HospitalContext';
 
 function PatientsPage() {
-  const { patients, addPatient, reschedulePatient } = useHospital();
+  const { patients, addPatient, reschedulePatient, deletePatient } = useHospital();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRescheduleForm, setShowRescheduleForm] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -110,20 +110,36 @@ function PatientsPage() {
                   {patient.priority} Priority
                 </div>
               </div>
-              <button
-                onClick={() => handleRescheduleClick(patient)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '15px',
-                  cursor: 'pointer',
-                  fontSize: '0.8rem'
-                }}
-              >
-                Reschedule
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => handleRescheduleClick(patient)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '15px',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem'
+                  }}
+                >
+                  Reschedule
+                </button>
+                <button
+                  onClick={() => deletePatient(patient.id)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '15px',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem'
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>
