@@ -43,39 +43,71 @@ export const HospitalProvider = ({ children }) => {
     }
   };
 
-  const checkHourlyCapacity = (patients, newPatient) => {
-    const appointmentHour = new Date(`${newPatient.date} ${newPatient.time}`).getHours();
-    const sameHourPatients = patients.filter(p => {
-      const patientHour = new Date(`${p.date} ${p.time}`).getHours();
-      return patientHour === appointmentHour && p.date === newPatient.date;
+  const getDoctorCounts = () => {
+    const saved = localStorage.getItem('doctorCounts');
+    return saved ? JSON.parse(saved) : {
+      General: 3,
+      Cardiology: 2,
+      Orthopedics: 2,
+      Neurology: 1,
+      Emergency: 5
+    };
+  };
+
+  const checkTimeSlotCapacity = (patients, newPatient) => {
+    const doctorCounts = getDoctorCounts();
+    const maxDoctors = doctorCounts[newPatient.department] || 1;
+    
+    // Check if it's after 12 AM and not emergency
+    const appointmentHour = parseInt(newPatient.time.split(':')[0]);
+    if (appointmentHour >= 0 && appointmentHour < 9 && newPatient.type !== 'Emergency') {
+      return {
+        exceedsLimit: true,
+        reason: 'Only emergency cases allowed after 12 AM'
+      };
+    }
+    
+    // Find patients in same time slot and department
+    const sameSlotPatients = patients.filter(p => {
+      return p.time === newPatient.time && 
+             p.date === newPatient.date && 
+             p.department === newPatient.department;
     });
     
-    // Calculate total duration for the hour
-    const totalDuration = sameHourPatients.reduce((sum, p) => sum + (p.duration || 30), 0) + (newPatient.duration || 30);
-    
     return {
-      patientCount: sameHourPatients.length,
-      totalDuration,
-      exceedsLimit: sameHourPatients.length >= 3 || totalDuration > 60
+      patientCount: sameSlotPatients.length,
+      maxCapacity: maxDoctors,
+      exceedsLimit: sameSlotPatients.length >= maxDoctors,
+      reason: sameSlotPatients.length >= maxDoctors ? 
+        `Department ${newPatient.department} full (${sameSlotPatients.length}/${maxDoctors} doctors busy)` : null
     };
   };
 
   const addPatient = async (newPatient) => {
-    // Check hourly capacity before adding
-    const capacityCheck = checkHourlyCapacity(patients, newPatient);
+    // Check time slot capacity before adding
+    const capacityCheck = checkTimeSlotCapacity(patients, newPatient);
     
     if (capacityCheck.exceedsLimit) {
       // Generate alert for capacity exceeded
       const capacityAlert = {
         id: Date.now() + Math.random(),
         severity: 'HIGH',
-        message: `Hour ${newPatient.time} exceeded capacity (${capacityCheck.patientCount + 1} patients, ${capacityCheck.totalDuration} min total). Patient needs rescheduling.`,
+        message: capacityCheck.reason || `Time slot ${newPatient.time} full for ${newPatient.department}`,
         time: new Date().toLocaleTimeString().slice(0, 5)
       };
       setAlerts(prev => [capacityAlert, ...prev]);
       
-      // Mark patient for rescheduling
-      newPatient.needsRescheduling = true;
+      // If after 12 AM and not emergency, reschedule to tomorrow
+      const appointmentHour = parseInt(newPatient.time.split(':')[0]);
+      if (appointmentHour >= 0 && appointmentHour < 9 && newPatient.type !== 'Emergency') {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        newPatient.date = tomorrow.toISOString().split('T')[0];
+        newPatient.time = '09:00';
+        newPatient.rescheduleReason = 'Rescheduled to tomorrow - only emergency cases after 12 AM';
+      } else {
+        newPatient.needsRescheduling = true;
+      }
     }
     
     // Always update local state immediately for better UX

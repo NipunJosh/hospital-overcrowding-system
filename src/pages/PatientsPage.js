@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import AddPatientForm from '../components/AddPatientForm';
-import RescheduleForm from '../components/RescheduleForm';
+import SmartRescheduleForm from '../components/SmartRescheduleForm';
+import DoctorManagement from '../components/DoctorManagement';
 import { useHospital } from '../context/HospitalContext';
 
 function PatientsPage() {
   const { patients, addPatient, reschedulePatient, deletePatient } = useHospital();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRescheduleForm, setShowRescheduleForm] = useState(false);
+  const [showDoctorManagement, setShowDoctorManagement] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   const handleAddPatient = (newPatient) => {
@@ -69,12 +71,27 @@ function PatientsPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
           <h4>Patient List</h4>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowAddForm(true)}
-          >
-            + Add Patient
-          </button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={() => setShowDoctorManagement(true)}
+              style={{
+                padding: '0.75rem 1rem',
+                background: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '25px',
+                cursor: 'pointer'
+              }}
+            >
+              👨⚕️ Manage Doctors
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add Patient
+            </button>
+          </div>
         </div>
         
         <div style={{ marginTop: '1rem' }}>
@@ -163,13 +180,19 @@ function PatientsPage() {
       )}
 
       {showRescheduleForm && selectedPatient && (
-        <RescheduleForm 
+        <SmartRescheduleForm 
           patient={selectedPatient}
           onReschedule={handleReschedule}
           onClose={() => {
             setShowRescheduleForm(false);
             setSelectedPatient(null);
           }}
+        />
+      )}
+
+      {showDoctorManagement && (
+        <DoctorManagement 
+          onClose={() => setShowDoctorManagement(false)}
         />
       )}
     </div>
