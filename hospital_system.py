@@ -102,11 +102,19 @@ def reschedule_patients():
         # Get all patients
         patients = db.get_patients()
         
-        # Priority order: Critical > High > Medium > Low
-        priority_order = {'critical': 1, 'high': 2, 'medium': 3, 'low': 4}
+        # AI Priority Algorithm: Intelligent rescheduling based on medical priority
+        priority_weights = {
+            'critical': 1,    # Life-threatening conditions - earliest slots
+            'high': 2,        # Urgent medical needs - early slots  
+            'medium': 3,      # Standard appointments - middle slots
+            'low': 4          # Routine checkups - later slots
+        }
         
-        # Sort ALL patients by priority (critical gets earliest times)
-        sorted_patients = sorted(patients, key=lambda p: priority_order.get(p.get('priority', 'low').lower(), 4))
+        # AI sorts patients by priority (understands medical urgency)
+        sorted_patients = sorted(patients, key=lambda p: (
+            priority_weights.get(p.get('priority', 'low').lower(), 4),
+            p.get('appointment_time', '23:59')  # Secondary sort by original time
+        ))
         
         # Generate new time slots starting from 9:00 AM
         rescheduled = []
@@ -134,13 +142,24 @@ def reschedule_patients():
                     f"Auto-rescheduled by priority ({patient.get('priority', 'medium')} priority)"
                 )
             
+            # Determine shift direction for AI analysis
+            old_hour = 12
+            try:
+                if ':' in str(old_time):
+                    old_hour = int(str(old_time).split(':')[0])
+            except:
+                pass
+            
+            shift_direction = "earlier" if current_hour < old_hour else "later" if current_hour > old_hour else "same time"
+            
             rescheduled.append({
                 'patient_id': patient['patient_id'],
                 'name': patient['name'],
                 'priority': patient.get('priority', 'medium'),
                 'old_time': old_time,
                 'new_time': new_time_12h,
-                'reason': f"Priority-based scheduling - {patient.get('priority', 'medium')} priority"
+                'shift_direction': shift_direction,
+                'reason': f"AI Algorithm: {patient.get('priority', 'medium')} priority moved {shift_direction}"
             })
             
             # Increment time by 30 minutes
@@ -149,11 +168,23 @@ def reschedule_patients():
                 current_hour += 1
                 current_minute = 0
         
+        # AI Summary Analytics
+        critical_count = len([p for p in rescheduled if p['priority'].lower() == 'critical'])
+        high_count = len([p for p in rescheduled if p['priority'].lower() == 'high'])
+        shifted_earlier = len([p for p in rescheduled if p['shift_direction'] == 'earlier'])
+        shifted_later = len([p for p in rescheduled if p['shift_direction'] == 'later'])
+        
         return jsonify({
             'success': True,
             'rescheduled_count': len(rescheduled),
             'rescheduled_patients': rescheduled,
-            'message': f'Successfully rescheduled all {len(rescheduled)} patients by priority order'
+            'ai_summary': {
+                'critical_patients_prioritized': critical_count,
+                'high_priority_patients': high_count,
+                'patients_moved_earlier': shifted_earlier,
+                'patients_moved_later': shifted_later
+            },
+            'message': f'AI optimized schedule: {critical_count} critical prioritized, {shifted_earlier} moved earlier, {shifted_later} moved later'
         })
         
     except Exception as e:
