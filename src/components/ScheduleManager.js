@@ -15,9 +15,7 @@ function ScheduleManager({ onReschedule }) {
         },
         body: JSON.stringify({
           target_hour: selectedHour,
-          action: 'priority_reschedule',
-          reschedule_from_hour: selectedHour,
-          existing_patients: JSON.parse(localStorage.getItem('hospitalPatients') || '[]')
+          action: 'priority_reschedule'
         })
       });
       
