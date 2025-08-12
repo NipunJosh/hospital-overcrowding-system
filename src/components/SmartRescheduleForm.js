@@ -14,40 +14,7 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
     };
   };
 
-  const getAvailableTimeSlots = () => {
-    const doctorCounts = getDoctorCounts();
-    const maxDoctors = doctorCounts[patient.department] || 1;
-    const slots = [];
-    
-    // Generate time slots from 9 AM to 9 PM (30-minute intervals)
-    for (let hour = 9; hour <= 21; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
-        // Count existing patients in this slot for same department and date
-        const existingPatients = patients.filter(p => 
-          p.time === timeSlot && 
-          p.date === newDate && 
-          p.department === patient.department &&
-          p.id !== patient.id // Exclude current patient
-        );
-        
-        const available = existingPatients.length < maxDoctors;
-        const period = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
-        
-        slots.push({
-          value: timeSlot,
-          display: displayTime,
-          available,
-          occupancy: `${existingPatients.length}/${maxDoctors}`
-        });
-      }
-    }
-    
-    return slots;
-  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
