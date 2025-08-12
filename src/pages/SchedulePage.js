@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import ScheduleManager from '../components/ScheduleManager';
+import { useHospital } from '../context/HospitalContext';
 
 function SchedulePage() {
+  const { patients } = useHospital();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduledPatients, setRescheduledPatients] = useState([]);
+  
+  // Get today's patients
+  const today = new Date().toISOString().split('T')[0];
+  const todayPatients = patients.filter(p => p.date === today).sort((a, b) => a.time.localeCompare(b.time));
   
   const getPriorityColor = (priority) => {
     switch(priority?.toLowerCase()) {
@@ -45,34 +51,41 @@ function SchedulePage() {
         <ScheduleManager onReschedule={handleReschedule} />
         
         <div className="card">
-          <h3>📅 Today's Schedule</h3>
+          <h3>📅 Today's Schedule ({todayPatients.length} patients)</h3>
           <div style={{ marginTop: '1.5rem' }}>
-            {[
-              { time: '9:00 AM', patient: 'Alice Johnson', dept: 'Cardiology', status: 'confirmed' },
-              { time: '9:30 AM', patient: 'Bob Wilson', dept: 'General', status: 'confirmed' },
-              { time: '10:00 AM', patient: 'John Doe', dept: 'Orthopedics', status: 'rescheduled' },
-              { time: '10:30 AM', patient: 'Mary Brown', dept: 'Neurology', status: 'confirmed' }
-            ].map((appointment, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '1rem',
-                marginBottom: '0.5rem',
-                background: appointment.status === 'rescheduled' ? 'rgba(243, 156, 18, 0.1)' : 'rgba(46, 204, 113, 0.1)',
-                borderRadius: '10px'
-              }}>
-                <div>
-                  <div style={{ fontWeight: 'bold' }}>{appointment.patient}</div>
-                  <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>{appointment.dept}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 'bold' }}>{appointment.time}</div>
-                  <div style={{ fontSize: '0.8rem', color: appointment.status === 'rescheduled' ? '#f39c12' : '#27ae60' }}>
-                    {appointment.status}
+            {todayPatients.length > 0 ? todayPatients.map((patient, index) => {
+              const [h, m] = patient.time.split(':');
+              const hour = parseInt(h);
+              const period = hour >= 12 ? 'PM' : 'AM';
+              const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+              const displayTime = `${displayHour}:${m} ${period}`;
+              
+              return (
+                <div key={patient.id} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '1rem',
+                  marginBottom: '0.5rem',
+                  background: patient.needsRescheduling ? 'rgba(243, 156, 18, 0.1)' : 'rgba(46, 204, 113, 0.1)',
+                  borderRadius: '10px'
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>{patient.name}</div>
+                    <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>{patient.dept} | {patient.priority}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 'bold' }}>{displayTime}</div>
+                    <div style={{ fontSize: '0.8rem', color: patient.needsRescheduling ? '#f39c12' : '#27ae60' }}>
+                      {patient.needsRescheduling ? 'needs reschedule' : 'confirmed'}
+                    </div>
                   </div>
                 </div>
+              );
+            }) : (
+              <div style={{ textAlign: 'center', color: '#7f8c8d', padding: '2rem' }}>
+                No patients scheduled for today
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
