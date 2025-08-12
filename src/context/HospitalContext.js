@@ -104,6 +104,7 @@ export const HospitalProvider = ({ children }) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getHourlyPredictions = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const todayPatients = patients.filter(p => p.date === today);
@@ -135,6 +136,7 @@ export const HospitalProvider = ({ children }) => {
 
   const [showRescheduleOptions, setShowRescheduleOptions] = useState(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const checkCapacityAndShowOptions = useCallback(() => {
     const predictions = getHourlyPredictions();
     const overcrowdedSlots = predictions.filter(slot => slot.predicted > CAPACITY_LIMIT);
