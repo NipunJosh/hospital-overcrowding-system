@@ -3,6 +3,7 @@ import Dashboard from './components/Dashboard';
 import AlertPanel from './components/AlertPanel';
 import PredictionChart from './components/PredictionChart';
 import ScheduleManager from './components/ScheduleManager';
+import Chatbot from './components/Chatbot';
 import './App.css';
 
 function App() {
@@ -49,6 +50,8 @@ function App() {
           <ScheduleManager onReschedule={(data) => console.log('Reschedule:', data)} />
         </div>
       </div>
+      
+      <Chatbot />
     </div>
   );
 }
