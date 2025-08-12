@@ -23,7 +23,7 @@ export const HospitalProvider = ({ children }) => {
 
   const deletePatient = async (patientId) => {
     try {
-      const response = await fetch(`https://hospital-overcrowding-system-1.onrender.com/api/patients/${patientId}`, {
+      const response = await fetch(`https://hospital-overcrowding-system-2.onrender.com/api/patients/${patientId}`, {
         method: 'DELETE'
       });
       
@@ -51,7 +51,7 @@ export const HospitalProvider = ({ children }) => {
     
     // Try to save to database in background
     try {
-      const response = await fetch('https://hospital-overcrowding-system-1.onrender.com/api/patients', {
+      const response = await fetch('https://hospital-overcrowding-system-2.onrender.com/api/patients', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export const HospitalProvider = ({ children }) => {
 
   const reschedulePatient = async (patientId, newTime, newDate, reason) => {
     try {
-      const response = await fetch(`https://hospital-overcrowding-system-1.onrender.com/api/patients/${patientId}/reschedule`, {
+      const response = await fetch(`https://hospital-overcrowding-system-2.onrender.com/api/patients/${patientId}/reschedule`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ export const HospitalProvider = ({ children }) => {
       
       // Try to sync with database in background
       try {
-        const response = await fetch('https://hospital-overcrowding-system-1.onrender.com/api/patients');
+        const response = await fetch('https://hospital-overcrowding-system-2.onrender.com/api/patients');
         if (response.ok) {
           const dbPatients = await response.json();
           const formattedPatients = dbPatients.map(p => ({
