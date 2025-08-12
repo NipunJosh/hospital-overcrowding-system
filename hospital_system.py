@@ -104,6 +104,18 @@ def reschedule_patients():
         'message': 'Patients rescheduled successfully'
     })
 
+@app.route('/api/database', methods=['GET'])
+def view_database():
+    """View all database contents"""
+    try:
+        if hasattr(db, 'data'):
+            return jsonify(db.data)
+        else:
+            patients = db.get_patients()
+            return jsonify({'patients': patients})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 if __name__ == '__main__':
     # Seed sample data
     db.seed_sample_data()
