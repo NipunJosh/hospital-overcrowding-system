@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import ScheduleManager from '../components/ScheduleManager';
+import RescheduleOptionsPopup from '../components/RescheduleOptionsPopup';
 import { useHospital } from '../context/HospitalContext';
 
 function SchedulePage() {
-  const { patients } = useHospital();
+  const { patients, reschedulePatient, showRescheduleOptions, setShowRescheduleOptions } = useHospital();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduledPatients, setRescheduledPatients] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
   
   // Get today's patients
   const today = new Date().toISOString().split('T')[0];
-  const todayPatients = patients.filter(p => p.date === today).sort((a, b) => a.time.localeCompare(b.time));
+  const allTodayPatients = patients.filter(p => p.date === today).sort((a, b) => a.time.localeCompare(b.time));
+  
+  // Filter patients based on active tab
+  const todayPatients = activeTab === 'all' ? allTodayPatients : 
+                       activeTab === 'emergency' ? allTodayPatients.filter(p => p.type === 'Emergency' || p.priority === 'Critical') :
+                       activeTab === 'scheduled' ? allTodayPatients.filter(p => p.type === 'Scheduled') :
+                       allTodayPatients;
   
   const getPriorityColor = (priority) => {
     switch(priority?.toLowerCase()) {
@@ -51,7 +59,53 @@ function SchedulePage() {
         <ScheduleManager onReschedule={handleReschedule} />
         
         <div className="card">
-          <h3>📅 Today's Schedule ({todayPatients.length} patients)</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3>📅 Today's Schedule ({todayPatients.length} patients)</h3>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setActiveTab('all')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  background: activeTab === 'all' ? '#3498db' : '#ecf0f1',
+                  color: activeTab === 'all' ? 'white' : '#7f8c8d',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem'
+                }}
+              >
+                All ({allTodayPatients.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('emergency')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  background: activeTab === 'emergency' ? '#e74c3c' : '#ecf0f1',
+                  color: activeTab === 'emergency' ? 'white' : '#7f8c8d',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem'
+                }}
+              >
+                Emergency ({allTodayPatients.filter(p => p.type === 'Emergency' || p.priority === 'Critical').length})
+              </button>
+              <button
+                onClick={() => setActiveTab('scheduled')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '15px',
+                  background: activeTab === 'scheduled' ? '#27ae60' : '#ecf0f1',
+                  color: activeTab === 'scheduled' ? 'white' : '#7f8c8d',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem'
+                }}
+              >
+                Scheduled ({allTodayPatients.filter(p => p.type === 'Scheduled').length})
+              </button>
+            </div>
+          </div>
           <div style={{ marginTop: '1.5rem' }}>
             {todayPatients.length > 0 ? todayPatients.map((patient, index) => {
               const [h, m] = patient.time.split(':');
@@ -89,6 +143,14 @@ function SchedulePage() {
           </div>
         </div>
       </div>
+
+      {showRescheduleOptions && (
+        <RescheduleOptionsPopup
+          options={showRescheduleOptions}
+          onReschedule={reschedulePatient}
+          onClose={() => setShowRescheduleOptions(null)}
+        />
+      )}
 
       {isRescheduling && (
         <div style={{
