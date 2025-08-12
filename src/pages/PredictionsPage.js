@@ -1,7 +1,10 @@
 import React from 'react';
 import PredictionChart from '../components/PredictionChart';
+import { useHospital } from '../context/HospitalContext';
 
-function PredictionsPage({ predictions }) {
+function PredictionsPage() {
+  const { getHourlyPredictions } = useHospital();
+  const predictions = getHourlyPredictions();
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <PredictionChart predictions={predictions} />
@@ -21,8 +24,19 @@ function PredictionsPage({ predictions }) {
                 <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{pred.predicted}</span>
                 <span style={{ color: '#7f8c8d' }}>/{pred.capacity}</span>
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
-                Confidence: {pred.confidence ? (pred.confidence * 100).toFixed(0) + '%' : 'N/A'}
+              <div style={{ fontSize: '0.8rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
+                {pred.patients.length > 0 ? (
+                  <div>
+                    <strong>Patients:</strong>
+                    {pred.patients.map(p => (
+                      <div key={p.id} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
+                        {p.name} ({p.priority})
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  'No patients scheduled'
+                )}
               </div>
             </div>
           ))}

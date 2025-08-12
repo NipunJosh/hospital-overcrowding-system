@@ -1,7 +1,9 @@
 import React from 'react';
 import AlertPanel from '../components/AlertPanel';
+import { useHospital } from '../context/HospitalContext';
 
-function AlertsPage({ alerts }) {
+function AlertsPage() {
+  const { alerts } = useHospital();
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <AlertPanel alerts={alerts} />

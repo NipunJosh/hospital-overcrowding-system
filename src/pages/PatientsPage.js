@@ -1,29 +1,25 @@
 import React, { useState } from 'react';
 import AddPatientForm from '../components/AddPatientForm';
 import RescheduleForm from '../components/RescheduleForm';
+import { useHospital } from '../context/HospitalContext';
 
 function PatientsPage() {
-  const [patients, setPatients] = useState([
-    { id: 'P001', name: 'John Doe', time: '10:00', dept: 'Cardiology', priority: 'Medium', type: 'Scheduled', healthCondition: 'Chest pain, requires ECG' },
-    { id: 'P002', name: 'Jane Smith', time: '11:30', dept: 'General', priority: 'Low', type: 'Scheduled', healthCondition: 'Routine checkup' },
-    { id: 'P003', name: 'Bob Wilson', time: '09:15', dept: 'Emergency', priority: 'Critical', type: 'Emergency', healthCondition: 'Severe abdominal pain' },
-    { id: 'P004', name: 'Alice Johnson', time: '14:00', dept: 'Orthopedics', priority: 'High', type: 'Scheduled', healthCondition: 'Knee injury, possible surgery' }
-  ]);
-
+  const { patients, addPatient, reschedulePatient } = useHospital();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRescheduleForm, setShowRescheduleForm] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   const handleAddPatient = (newPatient) => {
-    setPatients([...patients, newPatient]);
+    addPatient(newPatient);
   };
 
   const handleReschedule = (rescheduleData) => {
-    setPatients(patients.map(patient => 
-      patient.id === rescheduleData.patientId 
-        ? { ...patient, time: rescheduleData.newTime, date: rescheduleData.newDate }
-        : patient
-    ));
+    reschedulePatient(
+      rescheduleData.patientId,
+      rescheduleData.newTime,
+      rescheduleData.newDate,
+      rescheduleData.reason
+    );
   };
 
   const handleRescheduleClick = (patient) => {
