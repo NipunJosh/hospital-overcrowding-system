@@ -72,7 +72,7 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
     onClose();
   };
 
-  const availableSlots = getAvailableTimeSlots();
+
 
   return (
     <div style={{
