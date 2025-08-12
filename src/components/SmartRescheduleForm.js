@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useHospital } from '../context/HospitalContext';
-import TimeSlotPicker from './TimeSlotPicker';
 
 function SmartRescheduleForm({ patient, onReschedule, onClose }) {
   const { patients } = useHospital();
@@ -53,11 +52,12 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const slots = getAvailableTimeSlots();
-    const selectedSlot = slots.find(s => s.value === newTime);
+    // Check if selected time is in the past
+    const now = new Date();
+    const selectedDateTime = new Date(`${newDate} ${newTime}`);
     
-    if (!selectedSlot?.available) {
-      alert('Selected time slot is not available. Please choose another time.');
+    if (selectedDateTime < now) {
+      alert('Cannot reschedule to a past time. Please select a future time.');
       return;
     }
     
@@ -131,12 +131,20 @@ function SmartRescheduleForm({ patient, onReschedule, onClose }) {
 
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Available Time Slots
+                New Time (after current time)
               </label>
-              <TimeSlotPicker 
+              <input
+                type="time"
                 value={newTime}
-                onChange={setNewTime}
-                availableSlots={availableSlots}
+                onChange={(e) => setNewTime(e.target.value)}
+                min={new Date().toTimeString().slice(0, 5)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '10px',
+                  fontSize: '1rem'
+                }}
               />
             </div>
           </div>
