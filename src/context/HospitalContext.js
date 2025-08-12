@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const HospitalContext = createContext();
 
@@ -135,7 +135,7 @@ export const HospitalProvider = ({ children }) => {
 
   const [showRescheduleOptions, setShowRescheduleOptions] = useState(null);
 
-  const checkCapacityAndShowOptions = () => {
+  const checkCapacityAndShowOptions = useCallback(() => {
     const predictions = getHourlyPredictions();
     const overcrowdedSlots = predictions.filter(slot => slot.predicted > CAPACITY_LIMIT);
     const availableSlots = predictions.filter(slot => slot.predicted < CAPACITY_LIMIT);
@@ -174,7 +174,7 @@ export const HospitalProvider = ({ children }) => {
         });
       }
     }
-  };
+  }, [patients, CAPACITY_LIMIT, setAlerts, setShowRescheduleOptions]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -182,7 +182,7 @@ export const HospitalProvider = ({ children }) => {
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [patients]);
+  }, [patients, checkCapacityAndShowOptions]);
 
   // Load patients from localStorage first, then try database
   useEffect(() => {
