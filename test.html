@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hospital System Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .alert { background: #fff3cd; border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <h1>Hospital Overcrowding System - Test Page</h1>
+    
+    <div class="card">
+        <h3>System Status</h3>
+        <p>Backend: <span id="backend-status">Checking...</span></p>
+        <p>Predictions: <span id="predictions">Loading...</span></p>
+    </div>
+
+    <div class="card alert">
+        <h3>Quick Instructions</h3>
+        <p>1. Run: <code>python hospital_system.py</code></p>
+        <p>2. Run: <code>npm install && npm start</code></p>
+        <p>3. Open: <code>http://localhost:3000</code></p>
+    </div>
+
+    <script>
+        // Test backend connection
+        fetch('http://localhost:5000/api/predictions')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('backend-status').textContent = '✅ Connected';
+                document.getElementById('predictions').textContent = `${data.length} predictions loaded`;
+            })
+            .catch(error => {
+                document.getElementById('backend-status').textContent = '❌ Not running';
+                document.getElementById('predictions').textContent = 'Start backend first';
+            });
+    </script>
+</body>
+</html>
