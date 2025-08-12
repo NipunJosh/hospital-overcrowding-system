@@ -1,0 +1,10 @@
+After creating GitHub repo, run these commands:
+
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/hospital-overcrowding-system.git
+git push -u origin main
+
+Replace YOUR_USERNAME with your actual GitHub username.
+
+Example:
+git remote add origin https://github.com/johndoe/hospital-overcrowding-system.git
