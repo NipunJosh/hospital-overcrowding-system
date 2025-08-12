@@ -113,16 +113,24 @@ def reschedule_patients():
         current_hour = 9
         current_minute = 0
         
+        def format_12_hour(hour, minute):
+            period = 'AM' if hour < 12 else 'PM'
+            display_hour = hour if hour <= 12 else hour - 12
+            if display_hour == 0:
+                display_hour = 12
+            return f"{display_hour}:{minute:02d} {period}"
+        
         for patient in sorted_patients:
-            # Create new appointment time
-            new_time = f"{current_hour:02d}:{current_minute:02d}"
+            # Create new appointment time in 12-hour format
+            new_time_12h = format_12_hour(current_hour, current_minute)
+            new_time_24h = f"{current_hour:02d}:{current_minute:02d}"
             old_time = patient.get('appointment_time', 'Unknown')
             
             # Update patient in database
             if hasattr(db, 'update_patient_schedule'):
                 db.update_patient_schedule(
                     patient['patient_id'], 
-                    datetime.strptime(f"2025-08-12 {new_time}", "%Y-%m-%d %H:%M"),
+                    datetime.strptime(f"2025-08-12 {new_time_24h}", "%Y-%m-%d %H:%M"),
                     f"Auto-rescheduled by priority ({patient.get('priority', 'medium')} priority)"
                 )
             
@@ -131,7 +139,7 @@ def reschedule_patients():
                 'name': patient['name'],
                 'priority': patient.get('priority', 'medium'),
                 'old_time': old_time,
-                'new_time': new_time,
+                'new_time': new_time_12h,
                 'reason': f"Rescheduled by priority - {patient.get('priority', 'medium')} priority patient"
             })
             

@@ -51,10 +51,10 @@ function ScheduleManager({ onReschedule }) {
           onChange={(e) => setSelectedHour(e.target.value)}
           style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
         >
-          <option value="09:00">09:00 - Morning Rush</option>
-          <option value="10:00">10:00 - Peak Load</option>
-          <option value="11:00">11:00 - High Activity</option>
-          <option value="12:00">12:00 - Lunch Hour</option>
+          <option value="09:00">9:00 AM - Morning Rush</option>
+          <option value="10:00">10:00 AM - Peak Load</option>
+          <option value="11:00">11:00 AM - High Activity</option>
+          <option value="12:00">12:00 PM - Lunch Hour</option>
         </select>
       </div>
 

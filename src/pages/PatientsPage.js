@@ -101,7 +101,17 @@ function PatientsPage() {
                 )}
               </div>
               <div style={{ textAlign: 'right', marginRight: '1rem' }}>
-                <div style={{ fontWeight: 'bold' }}>{patient.time}</div>
+                <div style={{ fontWeight: 'bold' }}>
+                  {patient.time.includes(':') ? 
+                    (() => {
+                      const [hours, minutes] = patient.time.split(':');
+                      const hour = parseInt(hours);
+                      const period = hour >= 12 ? 'PM' : 'AM';
+                      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                      return `${displayHour}:${minutes} ${period}`;
+                    })() : patient.time
+                  }
+                </div>
                 <div style={{ 
                   fontSize: '0.8rem', 
                   color: getPriorityColor(patient.priority),

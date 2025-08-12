@@ -30,8 +30,8 @@ function SchedulePage() {
       } else {
         // Fallback for testing
         const mockRescheduled = [
-          { name: 'John Doe', priority: 'critical', oldTime: '10:00', newTime: '09:00', reason: 'Critical priority patient' },
-          { name: 'Jane Smith', priority: 'high', oldTime: '10:15', newTime: '09:30', reason: 'High priority patient' }
+          { name: 'John Doe', priority: 'critical', oldTime: '10:00 AM', newTime: '9:00 AM', reason: 'Critical priority patient' },
+          { name: 'Jane Smith', priority: 'high', oldTime: '10:15 AM', newTime: '9:30 AM', reason: 'High priority patient' }
         ];
         setRescheduledPatients(mockRescheduled);
       }
@@ -48,10 +48,10 @@ function SchedulePage() {
           <h3>📅 Today's Schedule</h3>
           <div style={{ marginTop: '1.5rem' }}>
             {[
-              { time: '09:00', patient: 'Alice Johnson', dept: 'Cardiology', status: 'confirmed' },
-              { time: '09:30', patient: 'Bob Wilson', dept: 'General', status: 'confirmed' },
-              { time: '10:00', patient: 'John Doe', dept: 'Orthopedics', status: 'rescheduled' },
-              { time: '10:30', patient: 'Mary Brown', dept: 'Neurology', status: 'confirmed' }
+              { time: '9:00 AM', patient: 'Alice Johnson', dept: 'Cardiology', status: 'confirmed' },
+              { time: '9:30 AM', patient: 'Bob Wilson', dept: 'General', status: 'confirmed' },
+              { time: '10:00 AM', patient: 'John Doe', dept: 'Orthopedics', status: 'rescheduled' },
+              { time: '10:30 AM', patient: 'Mary Brown', dept: 'Neurology', status: 'confirmed' }
             ].map((appointment, index) => (
               <div key={index} style={{
                 display: 'flex',
