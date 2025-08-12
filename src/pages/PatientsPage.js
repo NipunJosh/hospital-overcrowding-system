@@ -80,56 +80,56 @@ function PatientsPage() {
             + Add Patient
           </button>
         </div>
-          <div style={{ marginTop: '1rem' }}>
-            {patients.map(patient => (
-              <div key={patient.id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '1rem',
-                marginBottom: '0.5rem',
-                background: 'rgba(255, 255, 255, 0.5)',
-                borderRadius: '10px',
-                border: `2px solid ${getPriorityColor(patient.priority)}20`
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{patient.name}</div>
-                  <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
-                    {patient.dept} • {patient.type}
-                  </div>
-                  {patient.healthCondition && (
-                    <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
-                      Condition: {patient.healthCondition}
-                    </div>
-                  )}
+        
+        <div style={{ marginTop: '1rem' }}>
+          {patients.map(patient => (
+            <div key={patient.id} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem',
+              marginBottom: '0.5rem',
+              background: 'rgba(255, 255, 255, 0.5)',
+              borderRadius: '10px',
+              border: `2px solid ${getPriorityColor(patient.priority)}20`
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{patient.name}</div>
+                <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                  {patient.dept} • {patient.type}
                 </div>
-                <div style={{ textAlign: 'right', marginRight: '1rem' }}>
-                  <div style={{ fontWeight: 'bold' }}>{patient.time}</div>
-                  <div style={{ 
-                    fontSize: '0.8rem', 
-                    color: getPriorityColor(patient.priority),
-                    fontWeight: 'bold'
-                  }}>
-                    {patient.priority} Priority
+                {patient.healthCondition && (
+                  <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
+                    Condition: {patient.healthCondition}
                   </div>
-                </div>
-                <button
-                  onClick={() => handleRescheduleClick(patient)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '15px',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem'
-                  }}
-                >
-                  Reschedule
-                </button>
+                )}
               </div>
-            ))}
-          </div>
+              <div style={{ textAlign: 'right', marginRight: '1rem' }}>
+                <div style={{ fontWeight: 'bold' }}>{patient.time}</div>
+                <div style={{ 
+                  fontSize: '0.8rem', 
+                  color: getPriorityColor(patient.priority),
+                  fontWeight: 'bold'
+                }}>
+                  {patient.priority} Priority
+                </div>
+              </div>
+              <button
+                onClick={() => handleRescheduleClick(patient)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '15px',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem'
+                }}
+              >
+                Reschedule
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
