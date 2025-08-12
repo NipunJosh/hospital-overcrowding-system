@@ -8,8 +8,18 @@ function PredictionsPage() {
   
   // Update predictions when patients change
   useEffect(() => {
-    setPredictions(getHourlyPredictions());
+    const newPredictions = getHourlyPredictions();
+    setPredictions(newPredictions);
   }, [patients, getHourlyPredictions]);
+
+  // Force refresh every 2 seconds to catch any missed updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPredictions(getHourlyPredictions());
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [getHourlyPredictions]);
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <PredictionChart predictions={predictions} />
