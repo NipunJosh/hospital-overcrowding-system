@@ -8,17 +8,17 @@ load_dotenv()
 
 class HospitalDB:
     def __init__(self):
-        # MongoDB Atlas connection with comprehensive SSL fix
-        uri = os.getenv('MONGODB_URI', "mongodb+srv://fishhaven737:7Jfcn9qnvQ2FDS9g@hospital-overcrowding-s.lppiehn.mongodb.net/?retryWrites=true&w=majority&appName=hospital-overcrowding-system")
+        # MongoDB Atlas connection with different approach
+        uri = os.getenv('MONGODB_URI', "mongodb+srv://fishhaven737:7Jfcn9qnvQ2FDS9g@hospital-overcrowding-s.lppiehn.mongodb.net/hospital_system?retryWrites=true&w=majority&ssl=true&authSource=admin")
         
         try:
+            # Try without ServerApi first
             self.client = MongoClient(
-                uri, 
-                server_api=ServerApi('1'),
-                tlsAllowInvalidCertificates=True,
-                connectTimeoutMS=10000,
-                serverSelectionTimeoutMS=10000,
-                maxPoolSize=1
+                uri,
+                connectTimeoutMS=5000,
+                serverSelectionTimeoutMS=5000,
+                maxPoolSize=1,
+                retryWrites=True
             )
         except Exception as e:
             print(f"MongoDB connection setup failed: {e}")

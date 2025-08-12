@@ -7,15 +7,37 @@ function ScheduleManager({ onReschedule }) {
   const handleReschedule = async () => {
     setIsRescheduling(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      onReschedule({
-        hour: selectedHour,
-        action: 'reschedule_non_critical',
-        timestamp: new Date().toISOString()
+    try {
+      const response = await fetch('https://hospital-overcrowding-system-2.onrender.com/api/reschedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          target_hour: selectedHour,
+          action: 'priority_reschedule'
+        })
       });
-      setIsRescheduling(false);
-    }, 2000);
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        onReschedule({
+          rescheduled_patients: result.rescheduled_patients,
+          message: result.message,
+          count: result.rescheduled_count
+        });
+        console.log('Auto-reschedule successful:', result);
+      } else {
+        console.error('Reschedule failed:', result.error);
+        alert('Rescheduling failed: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Reschedule API error:', error);
+      alert('Failed to connect to rescheduling service');
+    }
+    
+    setIsRescheduling(false);
   };
 
   return (
@@ -46,9 +68,10 @@ function ScheduleManager({ onReschedule }) {
       </button>
 
       <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
-        <p>• Reschedules non-critical appointments</p>
-        <p>• Maintains emergency capacity</p>
-        <p>• Notifies affected patients</p>
+        <p>• <strong>Critical patients</strong> get earliest slots</p>
+        <p>• <strong>High priority</strong> patients scheduled next</p>
+        <p>• <strong>Medium/Low priority</strong> fill remaining slots</p>
+        <p>• Automatically updates database</p>
       </div>
     </div>
   );

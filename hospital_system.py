@@ -97,12 +97,63 @@ def get_schedule():
 @app.route('/api/reschedule', methods=['POST'])
 def reschedule_patients():
     data = request.json
-    # Implementation for rescheduling logic
-    return jsonify({
-        'success': True,
-        'rescheduled_count': 2,
-        'message': 'Patients rescheduled successfully'
-    })
+    
+    try:
+        # Get all patients
+        patients = db.get_patients()
+        
+        # Priority order: Critical > High > Medium > Low
+        priority_order = {'critical': 1, 'high': 2, 'medium': 3, 'low': 4}
+        
+        # Sort patients by priority (critical first)
+        sorted_patients = sorted(patients, key=lambda p: priority_order.get(p.get('priority', 'low').lower(), 4))
+        
+        # Generate new time slots starting from 9:00 AM
+        rescheduled = []
+        current_hour = 9
+        current_minute = 0
+        
+        for patient in sorted_patients:
+            # Create new appointment time
+            new_time = f"{current_hour:02d}:{current_minute:02d}"
+            old_time = patient.get('appointment_time', 'Unknown')
+            
+            # Update patient in database
+            if hasattr(db, 'update_patient_schedule'):
+                db.update_patient_schedule(
+                    patient['patient_id'], 
+                    datetime.strptime(f"2025-08-12 {new_time}", "%Y-%m-%d %H:%M"),
+                    f"Auto-rescheduled by priority ({patient.get('priority', 'medium')} priority)"
+                )
+            
+            rescheduled.append({
+                'patient_id': patient['patient_id'],
+                'name': patient['name'],
+                'priority': patient.get('priority', 'medium'),
+                'old_time': old_time,
+                'new_time': new_time,
+                'reason': f"Rescheduled by priority - {patient.get('priority', 'medium')} priority patient"
+            })
+            
+            # Increment time by 30 minutes
+            current_minute += 30
+            if current_minute >= 60:
+                current_hour += 1
+                current_minute = 0
+        
+        return jsonify({
+            'success': True,
+            'rescheduled_count': len(rescheduled),
+            'rescheduled_patients': rescheduled,
+            'message': f'Successfully rescheduled {len(rescheduled)} patients by priority'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Rescheduling failed'
+        })
 
 @app.route('/api/database', methods=['GET'])
 def view_database():

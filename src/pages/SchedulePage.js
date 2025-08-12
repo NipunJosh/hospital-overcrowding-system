@@ -4,18 +4,39 @@ import ScheduleManager from '../components/ScheduleManager';
 function SchedulePage() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduledPatients, setRescheduledPatients] = useState([]);
+  
+  const getPriorityColor = (priority) => {
+    switch(priority?.toLowerCase()) {
+      case 'critical': return '#e74c3c';
+      case 'high': return '#f39c12';
+      case 'medium': return '#3498db';
+      case 'low': return '#27ae60';
+      default: return '#7f8c8d';
+    }
+  };
 
   const handleReschedule = (data) => {
     setIsRescheduling(true);
     
     setTimeout(() => {
-      const mockRescheduled = [
-        { name: 'John Doe', oldTime: '10:00', newTime: '14:30', reason: 'Overcrowding prevention' },
-        { name: 'Jane Smith', oldTime: '10:15', newTime: '15:00', reason: 'Overcrowding prevention' }
-      ];
-      setRescheduledPatients(mockRescheduled);
+      if (data.rescheduled_patients) {
+        setRescheduledPatients(data.rescheduled_patients.map(p => ({
+          name: p.name,
+          priority: p.priority,
+          oldTime: p.old_time,
+          newTime: p.new_time,
+          reason: p.reason
+        })));
+      } else {
+        // Fallback for testing
+        const mockRescheduled = [
+          { name: 'John Doe', priority: 'critical', oldTime: '10:00', newTime: '09:00', reason: 'Critical priority patient' },
+          { name: 'Jane Smith', priority: 'high', oldTime: '10:15', newTime: '09:30', reason: 'High priority patient' }
+        ];
+        setRescheduledPatients(mockRescheduled);
+      }
       setIsRescheduling(false);
-    }, 3000);
+    }, 2000);
   };
 
   return (
@@ -109,9 +130,20 @@ function SchedulePage() {
                 padding: '1rem',
                 background: 'rgba(46, 204, 113, 0.1)',
                 borderRadius: '10px',
-                marginBottom: '0.5rem'
+                marginBottom: '0.5rem',
+                border: `2px solid ${getPriorityColor(patient.priority)}20`
               }}>
-                <div style={{ fontWeight: 'bold' }}>{patient.name}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 'bold' }}>{patient.name}</div>
+                  <div style={{ 
+                    fontSize: '0.8rem', 
+                    color: getPriorityColor(patient.priority),
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase'
+                  }}>
+                    {patient.priority} Priority
+                  </div>
+                </div>
                 <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
                   Moved from {patient.oldTime} to {patient.newTime}
                 </div>
