@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
-import { useHospital } from '../context/HospitalContext';
 
 function SmartRescheduleForm({ patient, onReschedule, onClose }) {
-  const { patients } = useHospital();
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTime, setNewTime] = useState('09:00');
   const [reason, setReason] = useState('');
-
-  const getDoctorCounts = () => {
-    const saved = localStorage.getItem('doctorCounts');
-    return saved ? JSON.parse(saved) : {
-      General: 3, Cardiology: 2, Orthopedics: 2, Neurology: 1, Emergency: 5
-    };
-  };
 
 
 
